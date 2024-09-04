@@ -1,0 +1,40 @@
+name: build
+
+on:
+  push:
+    tags:
+      - v*
+  workflow_dispatch:
+
+jobs:
+  build_wheels:
+    name: Build wheel on ${{ matrix.os }} for Python ${{ matrix.python-version}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+        python-version: ['3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Set up QEMU
+        if: runner.os == 'Linux'
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build wheel for Python ${{ matrix.python-version }}
+        run: python -m build
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}
+          path: wheelhouse
