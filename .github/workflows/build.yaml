@@ -33,7 +33,12 @@ jobs:
       - name: Generate script
         run: |
           echo export PYO_COMPILE_ARGS=-g0 > build.sh
+          echo /opt/python/cp38-cp38/bin/python3.8 -m build >> build.sh
+          echo /opt/python/cp39-cp39/bin/python3.9 -m build >> build.sh
+          echo /opt/python/cp310-cp310/bin/python3.10 -m build >> build.sh
+          echo /opt/python/cp311-cp311/bin/python3.11 -m build >> build.sh
           echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
+          echo /opt/python/cp313-cp313/bin/python3.13 -m build >> build.sh
           echo cd dist >> build.sh
           echo auditwheel repair *.whl >> build.sh
           chmod +x build.sh
@@ -54,3 +59,34 @@ jobs:
           path: |
             dist/wheelhouse
             dist/*.tar.gz
+
+  build_non_linux_wheels:
+    name: Build wheel on ${{ matrix.os }} for Python ${{ matrix.python-version}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+        python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - uses: actions/setup-python@v5
+        with:
+          cache: 'pip'
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+
+      - name: Ensure build package is present
+        run: python -m pip install build
+
+      - name: Build wheel for Python ${{ matrix.python-version }}
+        run: python -m build
+
+      - name: Upload the artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}
+          path: dist/*.whl
