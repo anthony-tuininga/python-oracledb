@@ -15,9 +15,9 @@ jobs:
       matrix:
         os: [windows-latest, macos-latest]
         python-version: ['3.12', '3.13']
-        arch: ['x64']
-        include:
-          - os: windows-latest
+        arch: ['x86', 'x64']
+        exclude:
+          - os: macos-latest
             arch: x86
 
     steps:
