@@ -61,7 +61,7 @@ jobs:
             dist/*.tar.gz
 
   build_non_linux_wheels:
-    name: Build wheel on ${{ matrix.os }} for Python ${{ matrix.python-version}}
+    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
