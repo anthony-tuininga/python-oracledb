@@ -36,10 +36,10 @@ jobs:
             -w /io \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
-            pwd && echo X && ls && echo X && \
+            (pwd && echo X && ls && echo X && \
             ls /opt && echo X && ls /opt/python && \
             /opt/python/cp312-cp312/bin/python3.12 -m build && \
-            (cd dist && auditwheel repair *.whl)
+            (cd dist && auditwheel repair *.whl))
 
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
