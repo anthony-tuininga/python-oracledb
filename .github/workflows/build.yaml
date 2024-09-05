@@ -37,7 +37,7 @@ jobs:
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
             pwd && echo X && ls && echo X && \
-            ls /io && echo X && ls /opt && ls /opt/python && \
+            ls /opt && echo X && ls /opt/python && \
             /opt/python/cp312-cp312/bin/python3.12 -m build && \
             (cd dist && auditwheel repair *.whl)
 
