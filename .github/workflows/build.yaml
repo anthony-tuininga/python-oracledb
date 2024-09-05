@@ -7,23 +7,21 @@ on:
   workflow_dispatch:
 
 jobs:
-  build_linux_wheels:
+  build_linux_x86_64_wheels:
     name: Build wheels on Linux
     runs-on: ubuntu-latest
+    container:
+      image: quay.io/pypa/manylinux2014_x86_64
+      env:
+        PYO_COMPILE_ARGS: -g0
+      volumes:
+        - my_docker_volume:/volume_mount
 
     steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: Build wheel for Python 3.12
-        container:
-          image: quay.io/pypa/manylinux2014_x86_64
-          env:
-            PYO_COMPILE_ARGS: -g0
-          volumes:
-            - my_docker_volume:/volume_mount
+      - name: Build wheels
         run: |
+          git clone --recurse-submodules ${{ github.repository }}
+          cd python-oracledb
           /opt/python/cp312-cp312/bin/python3.12 -m build
           (cd dist && auditwheel repair *.whl)
 
