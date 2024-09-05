@@ -13,12 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        arch:
+        include:
           - platform: amd64
+            container: quay.io/pypa/manylinux_2_28_x86_64
           - platform: arm64
-        image:
-          - container: quay.io/pypa/manylinux_2_28_x86_64
-          - container: quay.io/pypa/manylinux_2_28_aarch64
+            container: quay.io/pypa/manylinux_2_28_aarch64
 
     steps:
 
