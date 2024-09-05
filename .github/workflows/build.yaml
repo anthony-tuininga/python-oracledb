@@ -35,7 +35,7 @@ jobs:
             -v $(pwd):/${{ github.workspace }}  \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
-            pwd && ls && && ls /opt && ls /opt/python && \
+            pwd && ls && ls /opt && ls /opt/python && \
             /opt/python/cp312-cp312/bin/python3.12 -m build && \
             (cd dist && auditwheel repair *.whl)
 
