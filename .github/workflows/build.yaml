@@ -14,8 +14,10 @@ jobs:
     strategy:
       matrix:
         arch:
+          - platform: amd64
           - platform: arm64
         image:
+          - container: quay.io/pypa/manylinux_2_28_x86_64
           - container: quay.io/pypa/manylinux_2_28_aarch64
 
     steps:
@@ -31,7 +33,7 @@ jobs:
 
       - name: Generate script
         run: |
-          echo pwd > build.sh
+          echo export PYO_COMPILE_ARGS=-g0 > build.sh
           echo echo X >> build.sh
           echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
           echo cd dist >> build.sh
