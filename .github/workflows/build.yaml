@@ -35,10 +35,11 @@ jobs:
             -v $(pwd):/${{ github.workspace }}  \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
-            uname -a && ls
+            /opt/python/cp312-cp312/bin/python3.12 -m build && \
+            (cd dist && auditwheel repair *.whl)
 
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Linux_x86_64_wheels
+          name: Linux_${{ matrix.arch.platform }}_wheels
           path: dist/wheelhouse
