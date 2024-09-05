@@ -35,7 +35,7 @@ jobs:
             -v $(pwd):/${{ github.workspace }}  \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
-            /opt/python/cp312-cp312/bin/python3.12 -m build && \
+            pwd && ls && /opt/python/cp312-cp312/bin/python3.12 -m build && \
             (cd dist && auditwheel repair *.whl)
 
       - name: Upload the artifact
