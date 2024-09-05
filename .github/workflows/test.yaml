@@ -9,7 +9,7 @@ on:
 jobs:
 
   build_non_linux_wheels:
-    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}
+    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -41,7 +41,7 @@ jobs:
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.arch }}
           path: dist/*.whl
 
   combine_artifacts:
