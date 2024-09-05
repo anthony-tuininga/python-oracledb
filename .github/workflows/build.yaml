@@ -33,7 +33,9 @@ jobs:
         run: |
           echo pwd > build.sh
           echo echo X >> build.sh
-          echo ls /opt >> build.sh
+          echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
+          echo cd dist >> build.sh
+          echo auditwheel repair *.whl >> build.sh
           chmod +x build.sh
 
       - name: Build wheels
