@@ -33,7 +33,6 @@ jobs:
       - name: Generate script
         run: |
           echo export PYO_COMPILE_ARGS=-g0 > build.sh
-          echo echo X >> build.sh
           echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
           echo cd dist >> build.sh
           echo auditwheel repair *.whl >> build.sh
@@ -52,4 +51,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Linux_${{ matrix.platform }}_wheels
-          path: dist/wheelhouse
+          path: |
+            dist/wheelhouse
+            dist/*.tar.gz
