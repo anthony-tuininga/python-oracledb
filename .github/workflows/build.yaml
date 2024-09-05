@@ -41,6 +41,8 @@ jobs:
           echo /opt/python/cp313-cp313/bin/python3.13 -m build >> build.sh
           echo cd dist >> build.sh
           echo auditwheel repair *.whl >> build.sh
+          echo rm *.whl >> build.sh
+          echo mv wheelhouse/*.whl . >> build.sh
           chmod +x build.sh
 
       - name: Build wheels
@@ -56,17 +58,19 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Linux_${{ matrix.platform }}_wheels
-          path: |
-            dist/wheelhouse
-            dist/*.tar.gz
+          path: dist
 
   build_non_linux_wheels:
-    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}
+    name: Build wheels for ${{ matrix.os }} Python-${{ matrix.python-version}}-${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [windows-latest, macos-latest]
         python-version: ['3.8', '3.9', '3.10', '3.11', '3.12', '3.13']
+        arch: ['x86', 'x64']
+        exclude:
+          - os: macos-latest
+            arch: x86
 
     steps:
       - uses: actions/checkout@v4
@@ -77,6 +81,7 @@ jobs:
         with:
           cache: 'pip'
           python-version: ${{ matrix.python-version }}
+          architecture: ${{ matrix.arch }}
           allow-prereleases: true
 
       - name: Ensure build package is present
@@ -88,5 +93,16 @@ jobs:
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}
+          name: python-oracledb-${{ matrix.os }}-${{ matrix.python-version }}-${{ matrix.arch }}
           path: dist/*.whl
+
+  combine_artifacts:
+    name: Combine artifacts into single artifact
+    needs: build_non_linux_wheels
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/upload-artifact/merge@v4
+        with:
+          name: python-oracledb-wheels
+          delete-merged: true
