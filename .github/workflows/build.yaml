@@ -10,12 +10,6 @@ jobs:
   build_linux_wheels:
     name: Build wheels on Linux
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/pypa/manylinux2014_x86_64
-      env:
-        PYO_COMPILE_ARGS: -g0
-      volumes:
-        - my_docker_volume:/volume_mount
 
     steps:
       - uses: actions/checkout@v4
@@ -23,10 +17,15 @@ jobs:
           submodules: true
 
       - name: Build wheel for Python 3.12
-        run: /opt/python/cp312-cp312/bin/python3.12 -m build
-
-      - name: Transform into manylinux wheels
-        run: (cd dist && auditwheel repair *.whl)
+        container:
+          image: quay.io/pypa/manylinux2014_x86_64
+          env:
+            PYO_COMPILE_ARGS: -g0
+          volumes:
+            - my_docker_volume:/volume_mount
+        run: |
+          /opt/python/cp312-cp312/bin/python3.12 -m build
+          (cd dist && auditwheel repair *.whl)
 
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
