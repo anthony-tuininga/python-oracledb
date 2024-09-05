@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Build wheels
         run: |
-          git clone --recurse-submodules ${{ github.repository }}
+          git clone --recurse-submodules ${{ github.repositoryUrl }}
           cd python-oracledb
           /opt/python/cp312-cp312/bin/python3.12 -m build
           (cd dist && auditwheel repair *.whl)
