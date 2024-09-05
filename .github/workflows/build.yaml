@@ -31,10 +31,10 @@ jobs:
 
       - name: Build wheels
         run: |
-          docker run -i -t \
+          docker run \
             -v $(pwd):/${{ github.workspace }}  \
-            --platform linux/${{ matrix.arch }} \
-            ${{ matrix.image }} \
+            --platform linux/${{ matrix.arch.platform }} \
+            ${{ matrix.image.container }} \
             uname -a && ls
 
       - name: Upload the artifact
