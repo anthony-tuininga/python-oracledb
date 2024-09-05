@@ -29,6 +29,13 @@ jobs:
         with:
           platforms: ${{ matrix.arch.platform }}
 
+      - name: Generate script
+        run: |
+          echo pwd > build.sh
+          echo echo X >> build.sh
+          echo ls /opt >> build.sh
+          chmod +x build.sh
+
       - name: Build wheels
         run: |
           docker run \
@@ -36,10 +43,7 @@ jobs:
             -w /io \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
-            (pwd && echo X && ls && echo X && \
-            ls /opt && echo X && ls /opt/python && \
-            /opt/python/cp312-cp312/bin/python3.12 -m build && \
-            (cd dist && auditwheel repair *.whl))
+            build.sh
 
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
