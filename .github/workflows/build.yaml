@@ -28,7 +28,7 @@ jobs:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
-          platforms: ${{ matrix.arch.platform }}
+          platforms: ${{ matrix.platform }}
 
       - name: Generate script
         run: |
@@ -44,12 +44,12 @@ jobs:
           docker run \
             -v $(pwd):/io  \
             -w /io \
-            --platform linux/${{ matrix.arch.platform }} \
-            ${{ matrix.image.container }} \
+            --platform linux/${{ matrix.platform }} \
+            ${{ matrix.container }} \
             ./build.sh
 
       - name: Upload the artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Linux_${{ matrix.arch.platform }}_wheels
+          name: Linux_${{ matrix.platform }}_wheels
           path: dist/wheelhouse
