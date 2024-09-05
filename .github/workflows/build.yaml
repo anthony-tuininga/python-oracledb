@@ -33,6 +33,7 @@ jobs:
         run: |
           docker run \
             -v $(pwd):/io  \
+            -w /io \
             --platform linux/${{ matrix.arch.platform }} \
             ${{ matrix.image.container }} \
             pwd && echo X && ls && echo X && \
