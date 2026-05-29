@@ -1,0 +1,89 @@
+name: Run python-oracledb tests
+
+on:
+
+  push:
+    branches:
+      - main
+    paths:
+      - 'src'
+      - 'tests'
+      - 'pyproject.toml'
+      - '.github/workflows/tests.yaml'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+
+  dpy_tests:
+    runs-on: [ self-hosted, Linux, X64, OracleTestPilot ]
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: ['3.12']
+        rdbms: [ 'base-database-service-26ai' ]
+
+    steps:
+      - name: Check out python-oracledb repository code
+        uses: actions/checkout@v6
+        with:
+          submodules: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v6
+        with:
+          cache: 'pip'
+          python-version: ${{ matrix.python-version }}
+
+      - name: Create safe environment variable
+        run: |
+          PY_VERSION=${{matrix.python-version}}
+          PY_VERSION_SAFE=${PY_VERSION//./}
+          echo "PY_VERSION_SAFE=$PY_VERSION_SAFE" >> $GITHUB_ENV
+        shell: bash
+
+      - id: create_database
+        uses: oracle-actions/setup-testpilot@f620f11f9f26dacfe80ba1823342e3e92604c55f # v1.0.23
+        with:
+          oci-service: ${{ matrix.rdbms }}
+          action: create
+          user: admin_${{env.PY_VERSION_SAFE}}
+
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install oracledb
+          python -m pip install "oracledb[test]"
+
+      - name: Run tests
+        env:
+          PYO_TEST_CONNECT_STRING: ${{ steps.create_database.outputs.connection_string_suffix }}
+          PYO_TEST_MAIN_USER: pythontest_${{env.PY_VERSION_SAFE}}_${{ github.run_number }}
+          PYO_TEST_MAIN_PASSWORD: dQCuJKiLfY79UgbCrjwd
+          PYO_TEST_PROXY_USER: pythontestproxy_${{env.PY_VERSION_SAFE}}_${{ github.run_number }}
+          PYO_TEST_PROXY_PASSWORD: dQCuJKiLfY79UgbCrjwd
+          PYO_TEST_ADMIN_USER: admin_${{env.PY_VERSION_SAFE}}_${{ github.run_number }}
+          PYO_TEST_ADMIN_PASSWORD: ${{ steps.create_database.outputs.database_password }}
+          PYO_TEST_EDITION_NAME: pythoneditions_${{env.PY_VERSION_SAFE}}_${{ github.run_number }}
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}:/home/ubuntu
+        run: |
+          # remove enclosing double quotes
+          export PYO_TEST_CONNECT_STRING=`echo "${PYO_TEST_CONNECT_STRING:1:-1}"`
+          python -m pytest tests/create_schema.py
+          python -m pytest tests/test_1000_module.py
+          python -m pytest tests/test_1100_connection.py
+
+      - name: drop_schema
+        if: always()
+        run:
+          python -m pytest tests/drop_schema.py
+
+      - id: delete_database
+        uses: oracle-actions/setup-testpilot@f620f11f9f26dacfe80ba1823342e3e92604c55f # v1.0.23
+        if: always()
+        with:
+          oci-service: ${{ matrix.rdbms }}
+          action: delete
+          user: admin_${{env.PY_VERSION_SAFE}}
