@@ -65,11 +65,21 @@ jobs:
           - "arm64"
         include:
           - arch: "amd64"
+            libc: "manylinux"
             runner: "ubuntu-24.04"
-            docker-arch: "x86_64"
+            container: "quay.io/pypa/manylinux_2_28_x86_64:latest"
+          - arch: "amd64"
+            libc: "musllinux"
+            runner: "ubuntu-24.04"
+            container: "quay.io/pypa/musllinux_1_2_x86_64:latest"
           - arch: "arm64"
-            runner: "ubuntu-24.04-arm"
-            docker-arch: "aarch64"
+            libc: "manylinux"
+            runner: "ubuntu-24.04-arm64"
+            container: "quay.io/pypa/manylinux_2_28_aarch64:latest"
+          - arch: "arm64"
+            libc: "musllinux"
+            runner: "ubuntu-24.04-arm64"
+            container: "quay.io/pypa/musllinux_1_2_aarch64:latest"
 
     steps:
 
@@ -79,11 +89,6 @@ jobs:
 
       - name: Build wheel
         run: |
-          if [ "${{ matrix.libc }}" = "manylinux" ]; then
-            IMAGE="quay.io/pypa/manylinux_2_28_${{ matrix.docker-arch }}:latest"
-          else
-            IMAGE="quay.io/pypa/musllinux_1_2_${{ matrix.docker-arch }}:latest"
-          fi
           cat << EOF > build.sh
           set -e
           export PYO_COMPILE_ARGS=-g0
@@ -99,14 +104,14 @@ jobs:
             -v $(pwd):/io  \
             -w /io \
             --platform linux/${{ matrix.arch }} \
-            $IMAGE \
+            ${{ matrix.container }} \
             ./build.sh
 
       - name: Upload the artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
                                      # v7.0.1
         with:
-          name: Linux_${{ matrix.libc }}_${{ matrix.arch}}_{{ matrix.python-tag }}_wheels
+          name: Linux_${{ matrix.libc }}_${{ matrix.arch}}_${{ matrix.python-tag }}_wheels
           path: dist/*.whl
 
   build_macos_wheels:
