@@ -47,26 +47,29 @@ jobs:
   build_linux_wheels:
     name: Build wheels for Linux
     if: contains(inputs.tgt, 'Linux') || inputs.tgt == ''
-    runs-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.runner }}
     strategy:
       matrix:
+        python-tag:
+          - "cp310-cp310"
+          - "cp311-cp311"
+          - "cp312-cp312"
+          - "cp313-cp313"
+          - "cp314-cp314"
+          - "cp315-cp315"
+        libc:
+          - "manylinux"
+          - "musllinux"
+        arch:
+          - "amd64"
+          - "arm64"
         include:
-          - os: ubuntu-24.04
-            platform: amd64
-            container: quay.io/pypa/manylinux_2_28_x86_64
-            clib: gnu
-          - os: ubuntu-24.04-arm
-            platform: arm64
-            container: quay.io/pypa/manylinux_2_28_aarch64
-            clib: gnu
-          - os: ubuntu-24.04
-            platform: amd64
-            container: quay.io/pypa/musllinux_1_2_x86_64
-            clib: musl
-          - os: ubuntu-24.04-arm
-            platform: arm64
-            container: quay.io/pypa/musllinux_1_2_aarch64
-            clib: musl
+          - arch: "amd64"
+            runner: "ubuntu-latest"
+            docker-arch: "x86_64"
+          - arch: "arm64"
+            runner: "ubuntu-24.04"
+            docker-arch: "aarch64"
 
     steps:
 
@@ -74,35 +77,35 @@ jobs:
         with:
           submodules: true
 
-      - name: Generate script
+      - name: Build wheel
         run: |
-          echo export PYO_COMPILE_ARGS=-g0 > build.sh
-          echo /opt/python/cp310-cp310/bin/python3.10 -m build >> build.sh
-          echo /opt/python/cp311-cp311/bin/python3.11 -m build >> build.sh
-          echo /opt/python/cp312-cp312/bin/python3.12 -m build >> build.sh
-          echo /opt/python/cp313-cp313/bin/python3.13 -m build >> build.sh
-          echo /opt/python/cp314-cp314/bin/python3.14 -m build >> build.sh
-          echo /opt/python/cp315-cp315/bin/python3.15 -m build >> build.sh
-          echo cd dist >> build.sh
-          echo auditwheel repair *.whl >> build.sh
-          echo rm *.whl >> build.sh
-          echo mv wheelhouse/*.whl . >> build.sh
+          if [ "${{ matrix.libc }}" = "manylinux" ]; then
+            IMAGE="quay.io/pypa/manylinux_2_28_${{ matrix.docker-arch }}:latest"
+          else
+            IMAGE="quay.io/pypa/musllinux_1_2_${{ matrix.docker-arch }}:latest"
+          fi
+          cat << EOF > build.sh
+          set -e
+          export PYO_COMPILE_ARGS=-g0
+          manylinux-interpreters ensure ${{ matrix.python-tag }}
+          /opt/python/${{ matrix.python-tag }}/bin/python -m build
+          cd dist
+          echo auditwheel repair *.whl
+          rm *.whl
+          mv wheelhouse/*.whl .
+          EOF
           chmod +x build.sh
-
-      - name: Build wheels
-        run: |
           docker run \
             -v $(pwd):/io  \
             -w /io \
-            --platform linux/${{ matrix.platform }} \
-            ${{ matrix.container }} \
+            $IMAGE \
             ./build.sh
 
       - name: Upload the artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
                                      # v7.0.1
         with:
-          name: Linux_${{ matrix.platform }}_${{ matrix.clib}}_wheels
+          name: Linux_${{ matrix.libc }}_${{ matrix.arch}}_{{ matrix.python-tag }}_wheels
           path: dist/*.whl
 
   build_macos_wheels:
