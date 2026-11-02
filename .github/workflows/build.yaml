@@ -90,7 +90,7 @@ jobs:
           manylinux-interpreters ensure ${{ matrix.python-tag }}
           /opt/python/${{ matrix.python-tag }}/bin/python -m build
           cd dist
-          echo auditwheel repair *.whl
+          auditwheel repair *.whl
           rm *.whl
           mv wheelhouse/*.whl .
           EOF
