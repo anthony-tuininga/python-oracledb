@@ -65,10 +65,10 @@ jobs:
           - "arm64"
         include:
           - arch: "amd64"
-            runner: "ubuntu-latest"
+            runner: "ubuntu-24.04"
             docker-arch: "x86_64"
           - arch: "arm64"
-            runner: "ubuntu-24.04"
+            runner: "ubuntu-24.04-arm"
             docker-arch: "aarch64"
 
     steps:
@@ -98,6 +98,7 @@ jobs:
           docker run \
             -v $(pwd):/io  \
             -w /io \
+            --platform linux/${{ matrix.arch }} \
             $IMAGE \
             ./build.sh
 
